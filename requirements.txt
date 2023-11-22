@@ -1,0 +1,6 @@
+torch
+torch-hd
+scikit-learn
+scipy
+pandas
+numpy
