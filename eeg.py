@@ -35,6 +35,7 @@ class EEG(data.Dataset):
             name: str,
             root: str,
             train: bool = True,
+            window_size: int = 1,
             transform: Optional[Callable] = None,
             target_transform: Optional[Callable] = None,
     ):
@@ -45,6 +46,7 @@ class EEG(data.Dataset):
         os.makedirs(self.root, exist_ok=True)
 
         self.train = train
+        self.window_size = window_size
         self.transform = transform
         self.target_transform = target_transform
 
@@ -122,6 +124,10 @@ class EEG(data.Dataset):
         X = dataframe.values[:, :-1]
         y = dataframe.values[:, -1]
         features = []
+        targets = []
         for i in range(len(X)):
-            features.append(self.extract_features(X[i]))
-        return torch.tensor(np.array(features), dtype=torch.float), torch.tensor(y, dtype=torch.long)
+            num_samples_w = len(X[i]) // self.window_size
+            for w in range(self.window_size):
+                features.append(self.extract_features(X[i][w*num_samples_w:(w+1)*num_samples_w]))
+                targets.append(y[i])
+        return torch.tensor(np.array(features), dtype=torch.float), torch.tensor(np.array(targets), dtype=torch.long)
